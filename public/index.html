@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ToDo App</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>ToDo List</h1>
+    <form id="todo-form">
+      <input type="text" id="task" placeholder="Enter a task..." required />
+      <button type="submit">Add</button>
+    </form>
+    <ul id="todo-list"></ul>
+  </div>
+
+  <script>
+    const form = document.getElementById('todo-form');
+    const taskInput = document.getElementById('task');
+    const todoList = document.getElementById('todo-list');
+
+    // Fetch todos
+    function loadTodos() {
+      fetch('/todos')
+        .then(res => res.json())
+        .then(todos => {
+          todoList.innerHTML = '';
+          todos.forEach(todo => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              ${todo.task}
+              <button onclick="deleteTodo(${todo.id})">
+                     <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+            todoList.appendChild(li);
+          });
+        });
+    }
+
+    // Add todo
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const task = taskInput.value;
+      fetch('/todos', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ task })
+      }).then(() => {
+        taskInput.value = '';
+        loadTodos();
+      });
+    });
+
+    // Delete todo
+    function deleteTodo(id) {
+      fetch(`/todos/${id}`, { method: 'DELETE' })
+        .then(() => loadTodos());
+    }
+
+    // Initial load
+    loadTodos();
+  </script>
+</body>
+</html>
